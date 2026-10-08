@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MediSlot · Laboratoire SSE</title><link rel="stylesheet" href="style.css"></head>
+<body><div id="app" v-cloak>
+<header><strong>MediSlot</strong><span>ATELIER · TEMPS RÉEL AVEC SSE</span></header>
+<main><p class="eyebrow">UN CRÉNEAU · UNE SEULE RÉSERVATION</p>
+<h1>Les disponibilités,<br>en direct.</h1>
+<p class="intro">Ouvrez deux onglets. Réservez dans le premier, observez le second.</p>
+<div class="toolbar"><span class="connection">{{ connection }}</span><button @click="createSlot">Ajouter un créneau de test</button></div>
+<p class="message" role="status">{{ message || 'Prêt pour la démonstration.' }}</p>
+<p v-if="!slots.length">Aucun créneau. Ajoutez un créneau de test pour commencer.</p>
+<div class="grid"><article v-for="slot in slots" :key="slot.id">
+<p class="date">{{ new Date(slot.startsAt).toLocaleString('fr-FR') }}</p>
+<h2>Consultation de démonstration</h2><p class="id">{{ slot.id.slice(0,8) }}</p>
+<p :class="['badge',slot.status]">{{ slot.status === 'AVAILABLE' ? 'Disponible' : 'Réservé' }}</p>
+<button :disabled="slot.status !== 'AVAILABLE' || pending === slot.id" @click="reserve(slot)">{{ pending === slot.id ? 'Envoi…' : slot.status === 'BOOKED' ? 'Indisponible' : 'Réserver' }}</button>
+</article></div>
+<p class="note">Données fictives · Sans authentification · Laboratoire local uniquement.</p>
+</main></div><script src="vue.global.prod.js"></script><script src="app.js"></script></body></html>

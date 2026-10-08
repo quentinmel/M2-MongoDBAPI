@@ -1,0 +1,23 @@
+name: medislot-sse-eleves
+services:
+  mongo:
+    image: mongo:8.0
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - lab-data:/data/db
+  api:
+    build: .
+    ports:
+      - "127.0.0.1:8086:8080"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/medislot_sse_lab
+      SPRING_PROFILES_ACTIVE: lab
+    depends_on:
+      mongo:
+        condition: service_healthy
+volumes:
+  lab-data:
