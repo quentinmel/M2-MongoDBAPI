@@ -5,13 +5,12 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch: # Permet de lancer le test manuellement depuis l'onglet Actions de GitHub
+  workflow_dispatch:
 
 jobs:
   load-test:
     runs-on: ubuntu-latest
 
-    # Si votre API a besoin de MongoDB, vous pouvez utiliser un service MongoDB en local :
     services:
       mongodb:
         image: mongo:latest
@@ -29,11 +28,11 @@ jobs:
         with:
           node-version: '18'
 
-      # 3. Installer les dépendances de l'API
+      # 3. Installer les dépendances
       - name: Install dependencies
         run: npm install
 
-      # 4. Démarrer l'API en arrière-plan avec les variables d'environnement injectées
+      # 4. Démarrer l'API avec les variables d'environnement pour MongoDB local
       - name: Start Express API
         env:
           PORT: 3000
@@ -52,17 +51,16 @@ jobs:
           
           echo "Erreur : Le serveur n'a pas démarré à temps."
           exit 1
-        working-directory: ./backend # (Gardez ou adaptez selon votre structure de dossier)
 
-      # 5. Installer k6 officiellement
+      # 5. Installer k6
       - name: Setup k6
         uses: grafana/setup-k6-action@v1
 
-      # 6. Lancer le test de charge k6
+      # 6. Lancer le test de charge k6 via npm
       - name: Run k6 load test
         run: npm run loadtest
 
-      # 7. (Optionnel) Sauvegarder le rapport HTML en artefact GitHub
+      # 7. Sauvegarder le rapport HTML en artefact GitHub
       - name: Upload k6 report
         uses: actions/upload-artifact@v4
         if: always()
