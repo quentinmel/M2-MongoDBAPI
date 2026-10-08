@@ -1,0 +1,20 @@
+### Créer un produit
+POST http://localhost:3000/api/produits
+Content-Type: application/json
+
+{ "nom": "Clavier mécanique", "description": "Switch rouges", "prix": 79.9, "stock": 25 }
+
+### Lister (pagination)
+GET http://localhost:3000/api/produits?page=1&limit=10
+
+### Lire un produit (remplacez l'id)
+GET http://localhost:3000/api/produits/REMPLACER_PAR_ID
+
+### Modifier
+PUT http://localhost:3000/api/produits/REMPLACER_PAR_ID
+Content-Type: application/json
+
+{ "prix": 69.9, "stock": 30 }
+
+### Supprimer
+DELETE http://localhost:3000/api/produits/REMPLACER_PAR_ID
