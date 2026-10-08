@@ -7,6 +7,10 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+# ⚠️ Indispensable pour autoriser GitHub Actions à créer des Issues
+permissions:
+  issues: write
+
 jobs:
   load-test:
     runs-on: ubuntu-latest
@@ -32,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # 4. Démarrer l'API avec les variables d'environnement pour MongoDB local
+      # 4. Démarrer l'API Express avec MongoDB local
       - name: Start Express API
         env:
           PORT: 3000
@@ -56,14 +60,27 @@ jobs:
       - name: Setup k6
         uses: grafana/setup-k6-action@v1
 
-      # 6. Lancer le test de charge k6 via npm
+      # 6. Lancer le test de charge k6 (ex: 100 VUs qui font échouer les thresholds)
       - name: Run k6 load test
-        run: npm run loadtest
+        run: k6 run -e VUS=100 loadtest.js
 
-      # 7. Sauvegarder le rapport HTML en artefact GitHub
+      # 7. (Optionnel) Sauvegarder le rapport HTML en artefact
       - name: Upload k6 report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: k6-report
           path: rapport.html
+
+      # 8. Créer une GitHub Issue en cas d'échec du test de charge
+      - name: Create GitHub Issue on Failure
+        uses: actions/github-script@v7
+        if: failure()
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '❌ Alerte : Échec du test de charge k6',
+              body: `Le test de charge automatique k6 a échoué sur la branche \`${context.ref_name}\`.\n\nLes seuils de performance (seuils de durée ou taux d'erreur) ont été dépassés.\n\n👉 [Voir les détails de l'exécution sur GitHub Actions](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
+            });
