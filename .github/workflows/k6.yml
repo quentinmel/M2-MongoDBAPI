@@ -33,16 +33,25 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # 4. Démarrer l'API en arrière-plan
+      # 4. Démarrer l'API en arrière-plan et attendre qu'elle soit prête
       - name: Start Express API
         run: |
-          # Si vous utilisez des variables d'environnement, définissez-les ici ou via les Secrets GitHub
           export PORT=3000
           export MONGO_URI=mongodb://localhost:27017/api-crud-test
           npm start &
           
-          # Attendre quelques secondes que le serveur démarre
-          sleep 3
+          # Attendre que le port 3000 soit réellement ouvert (maximum 15 secondes)
+          echo "Attente du démarrage du serveur..."
+          for i in {1..15}; do
+            if nc -z localhost 3000; then
+              echo "Serveur démarré avec succès !"
+              exit 0
+            fi
+            sleep 1
+          done
+          
+          echo "Erreur : Le serveur n'a pas démarré à temps."
+          exit 1
 
       # 5. Installer k6 officiellement
       - name: Setup k6
