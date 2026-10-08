@@ -1,4 +1,4 @@
-name: Load Test K6
+name: Load Test K6 Multi-Tier
 
 on:
   push:
@@ -54,36 +54,60 @@ jobs:
       - name: Setup k6
         uses: grafana/setup-k6-action@v1
 
-      # 1. Lancer k6, afficher les logs en direct, et les sauvegarder dans k6_output.txt
-      - name: Run k6 load test
-        id: k6_run
+      # 1. Boucle de tests multi-paliers (10, 100, 1000 VUs)
+      - name: Run Multi-Tier k6 Load Tests
+        id: k6_multi_run
         run: |
-          k6 run -e VUS=100 loadtest.js 2>&1 | tee k6_output.txt
-          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+          echo "### 📊 Rapport Global des Tests de Charge k6" >> $GITHUB_STEP_SUMMARY
+          
+          GLOBAL_FAILURE=0
 
-      # 2. Injecter le résumé k6 dans le Summary GitHub (s'exécute toujours, même en cas d'échec)
-      - name: Publish k6 Summary to GitHub
-        if: always()
-        run: |
-          echo "### 📊 Résumé du Test de Charge k6" >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
-          cat k6_output.txt >> $GITHUB_STEP_SUMMARY
-          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          # Liste des paliers à tester
+          for vus in 10 100 1000; do
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "---" >> $GITHUB_STEP_SUMMARY
+            echo "### 🚀 Palier : **$vus Utilisateurs Virtuels (VUs)**" >> $GITHUB_STEP_SUMMARY
+            
+            # Exécuter k6 sans stopper la boucle en cas d'échec
+            set +e
+            k6 run -e VUS=$vus loadtest.js > k6_output_$vus.txt 2>&1
+            EXIT_CODE=$?
+            set -e
 
-      # 3. Sauvegarder le rapport HTML en artefact
-      - name: Upload k6 report
+            if [ $EXIT_CODE -eq 0 ]; then
+              echo "> **Statut :** ✅ **SUCCÈS (Tous les seuils respectés)**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "> **Statut :** ❌ **ÉCHEC (Seuils dépassés / Surcharge)**" >> $GITHUB_STEP_SUMMARY
+              GLOBAL_FAILURE=1
+            fi
+
+            # Ajouter un extrait ou le résumé du test dans le rapport
+            echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
+            cat k6_output_$vus.txt >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          done
+
+          # Sauvegarder l'état global pour les étapes suivantes
+          if [ $GLOBAL_FAILURE -eq 1 ]; then
+            echo "test_failed=true" >> $GITHUB_OUTPUT
+          else
+            echo "test_failed=false" >> $GITHUB_OUTPUT
+          fi
+
+      # 2. Sauvegarder les rapports de sortie en artefacts GitHub
+      - name: Upload k6 reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: k6-report
-          path: rapport.html
+          name: k6-reports-all
+          path: k6_output_*.txt
 
-      # 4. Faire échouer explicitement le job si k6 a échoué
-      - name: Check k6 status
-        if: steps.k6_run.outputs.exit_code != '0'
+      # 3. Faire échouer explicitement le job si au moins un palier a échoué
+      - name: Check global status
+        if: steps.k6_multi_run.outputs.test_failed == 'true'
         run: exit 1
 
-      # 5. Créer une GitHub Issue si le test échoue
+      # 4. Créer une GitHub Issue si un test a échoué
       - name: Create GitHub Issue on Failure
         uses: actions/github-script@v7
         if: failure()
@@ -92,6 +116,6 @@ jobs:
             github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: '❌ Alerte : Échec du test de charge k6',
-              body: `Le test de charge automatique k6 a échoué sur la branche \`${context.ref_name}\`.\n\nLes seuils de performance ont été dépassés.\n\n👉 [Voir le résumé complet et les détails sur GitHub Actions](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
+              title: '❌ Alerte : Échec du test de charge multi-paliers k6',
+              body: `Le test de charge automatique k6 a détecté une défaillance sur l'un des paliers (10, 100 ou 1000 VUs) sur la branche \`${context.ref_name}\`.\n\n👉 [Voir le rapport détaillé et le résumé dans GitHub Actions](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
             });
