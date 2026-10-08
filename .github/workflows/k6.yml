@@ -7,7 +7,6 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
-# ⚠️ Indispensable pour autoriser GitHub Actions à créer des Issues
 permissions:
   issues: write
 
@@ -22,21 +21,17 @@ jobs:
           - 27017:27017
 
     steps:
-      # 1. Récupérer le code du projet
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Configurer Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      # 3. Installer les dépendances
       - name: Install dependencies
         run: npm install
 
-      # 4. Démarrer l'API Express avec MongoDB local
       - name: Start Express API
         env:
           PORT: 3000
@@ -56,15 +51,26 @@ jobs:
           echo "Erreur : Le serveur n'a pas démarré à temps."
           exit 1
 
-      # 5. Installer k6
       - name: Setup k6
         uses: grafana/setup-k6-action@v1
 
-      # 6. Lancer le test de charge k6 (ex: 100 VUs qui font échouer les thresholds)
+      # 1. Lancer k6, afficher les logs en direct, et les sauvegarder dans k6_output.txt
       - name: Run k6 load test
-        run: k6 run -e VUS=100 loadtest.js
+        id: k6_run
+        run: |
+          k6 run -e VUS=100 loadtest.js 2>&1 | tee k6_output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
 
-      # 7. (Optionnel) Sauvegarder le rapport HTML en artefact
+      # 2. Injecter le résumé k6 dans le Summary GitHub (s'exécute toujours, même en cas d'échec)
+      - name: Publish k6 Summary to GitHub
+        if: always()
+        run: |
+          echo "### 📊 Résumé du Test de Charge k6" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`text" >> $GITHUB_STEP_SUMMARY
+          cat k6_output.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      # 3. Sauvegarder le rapport HTML en artefact
       - name: Upload k6 report
         uses: actions/upload-artifact@v4
         if: always()
@@ -72,7 +78,12 @@ jobs:
           name: k6-report
           path: rapport.html
 
-      # 8. Créer une GitHub Issue en cas d'échec du test de charge
+      # 4. Faire échouer explicitement le job si k6 a échoué
+      - name: Check k6 status
+        if: steps.k6_run.outputs.exit_code != '0'
+        run: exit 1
+
+      # 5. Créer une GitHub Issue si le test échoue
       - name: Create GitHub Issue on Failure
         uses: actions/github-script@v7
         if: failure()
@@ -82,5 +93,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: '❌ Alerte : Échec du test de charge k6',
-              body: `Le test de charge automatique k6 a échoué sur la branche \`${context.ref_name}\`.\n\nLes seuils de performance (seuils de durée ou taux d'erreur) ont été dépassés.\n\n👉 [Voir les détails de l'exécution sur GitHub Actions](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
+              body: `Le test de charge automatique k6 a échoué sur la branche \`${context.ref_name}\`.\n\nLes seuils de performance ont été dépassés.\n\n👉 [Voir le résumé complet et les détails sur GitHub Actions](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
             });
