@@ -467,6 +467,16 @@
         ],
         "parameters": [
           {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Clé UUID stable pour rejouer une réservation sans la créer plusieurs fois."
+          },
+          {
             "name": "X-CSRF-TOKEN",
             "in": "header",
             "required": true,
@@ -583,7 +593,7 @@
             }
           },
           "409": {
-            "description": "Conflit",
+            "description": "Conflit de créneau (code SLOT_TAKEN) ou réutilisation incorrecte d’une clé d’idempotence",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1203,6 +1213,10 @@
             "items": {
               "type": "object"
             }
+          },
+          "code": {
+            "type": "string",
+            "description": "Code métier, par exemple SLOT_TAKEN."
           }
         }
       },

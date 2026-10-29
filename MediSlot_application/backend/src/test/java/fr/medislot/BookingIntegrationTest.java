@@ -56,4 +56,14 @@ class BookingIntegrationTest {
   assertEquals(before.exposed()+1,after.exposed());
   assertEquals(before.converted()+1,after.converted());
  }
+ @Test void idempotencyKeyReplaysTheSameBookingExactlyOnce(){
+  Long slot=slots.available(1L,Instant.now(),Instant.now().plus(Duration.ofDays(14))).getFirst().id;
+  String key=java.util.UUID.randomUUID().toString();
+  var created=booking.book("patient@medislot.test",slot,null,key);
+  var replay=booking.book("patient@medislot.test",slot,null,key);
+  assertEquals(created.id,replay.id);
+  assertEquals(1,jdbc.queryForObject("SELECT COUNT(*) FROM appointment WHERE patient_id=? AND slot_id=? AND status='CONFIRMED'",Integer.class,created.patientId,slot));
+  Long otherSlot=slots.available(2L,Instant.now(),Instant.now().plus(Duration.ofDays(14))).getFirst().id;
+  assertEquals(409,assertThrows(ResponseStatusException.class,()->booking.book("patient@medislot.test",otherSlot,null,key)).getStatusCode().value());
+ }
 }
