@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MediSlot - Recherche de professionnels</title><link rel="stylesheet" href="style.css"></head>
+<body><div id="app" v-cloak>
+<header><strong>MediSlot</strong><span>LABORATOIRE DE RECHERCHE</span></header>
+<main><p class="eyebrow">TROUVER UN PROFESSIONNEL</p>
+<h1>Une recherche qui suit<br>votre saisie.</h1>
+<p class="intro">Cherchez un nom ou une spécialité parmi nos profils fictifs.</p>
+<form @submit.prevent="requestSearch">
+<label for="search">Nom ou spécialité</label>
+<div class="searchbar"><input id="search" type="search" v-model="query"
+maxlength="60" autocomplete="off" aria-describedby="help" placeholder="Ex. : martin, cardio...">
+<button type="submit">Rechercher</button></div>
+<p id="help">Au moins 2 caractères. Au maximum 20 résultats affichés.</p>
+</form>
+<p class="status" role="status" aria-live="polite">{{ statusText }}</p>
+<button v-if="state === 'error'" @click="requestSearch">Réessayer</button>
+<section :aria-busy="state === 'loading'" aria-label="Résultats">
+<p v-if="state === 'success'" class="summary">Résultats pour « {{ displayedQuery }} »</p>
+<ul class="grid"><li v-for="item in results" :key="item.id">
+<article><div class="avatar" aria-hidden="true">{{ item.name.charAt(0) }}</div>
+<div><h2>{{ item.name }}</h2><p>{{ item.specialty }}</p><p class="city">{{ item.city }}</p></div></article>
+</li></ul></section>
+<p class="note">Profils fictifs. Recherche dans le nom et la spécialité, pas dans la ville.</p>
+</main></div><script src="vue.global.prod.js"></script><script src="app.js"></script></body></html>
