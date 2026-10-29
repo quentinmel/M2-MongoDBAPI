@@ -32,8 +32,8 @@ import org.springframework.web.server.ResponseStatusException;
 public class DebugController {
 
     private static final String ADMIN_PASSWORD = "Admin-MediSlot-2026";
-    private static final String EXPORT_AWS_ACCESS_KEY_ID = "CHANGEME";
-    private static final String EXPORT_AWS_SECRET_ACCESS_KEY = "CHANGEME";
+    private static final String EXPORT_AWS_ACCESS_KEY_ID = "CHANGE-ME";
+    private static final String EXPORT_AWS_SECRET_ACCESS_KEY = "CHANGE-ME";
     public static int Nb_Appels = 0;
 
     private final AppointmentRepository appointments;
