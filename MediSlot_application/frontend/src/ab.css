@@ -51,3 +51,13 @@
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 8px;
 }
+
+:focus-visible {
+  outline: 3px solid #005a8c;
+  outline-offset: 4px;
+}
+
+.hero h1:focus-visible,
+.hero .searchbar button:focus-visible {
+  outline-color: #fff;
+}

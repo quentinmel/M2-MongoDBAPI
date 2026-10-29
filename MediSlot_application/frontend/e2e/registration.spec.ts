@@ -4,6 +4,11 @@ test('inscription, limite UTF-8 du mot de passe et connexion',async({request})=>
  const csrf=await (await request.get('/api/csrf')).json();
  const headers={[csrf.headerName]:csrf.token};
  const email=`test-${Date.now()}@medislot.test`;
+ const invalidFields=await request.post('/api/register',{headers,data:{email:'invalid',name:'',password:'short'}});
+ expect(invalidFields.status()).toBe(400);
+ const validation=await invalidFields.json();
+ expect(validation.detail).toBe('Vérifiez les données saisies.');
+ expect(validation.errors).toEqual(expect.arrayContaining([{field:'email',message:'Saisissez une adresse e-mail valide.'},{field:'password',message:'Le mot de passe doit contenir au moins 12 caractères.'},{field:'name',message:'Le nom est obligatoire.'}]));
  const invalid=await request.post('/api/register',{headers,data:{email,name:'Patient de test',password:'é'.repeat(40)}});
  expect(invalid.status()).toBe(400);
  const created=await request.post('/api/register',{headers,data:{email,name:'Patient de test',password:'MediSlot-test-2026!'}});
