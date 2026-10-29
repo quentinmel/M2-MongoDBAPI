@@ -1,0 +1,35 @@
+.slot {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-height: 46px;
+}
+
+.slot-label {
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.slot-time {
+  font-size: 13px;
+}
+
+.slot-loading {
+  border: 0;
+  background: linear-gradient(90deg, #e8f0f5 25%, #f5f8fa 50%, #e8f0f5 75%);
+  background-size: 200% 100%;
+  animation: ab-skeleton-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes ab-skeleton-pulse {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot-loading {
+    animation: none;
+  }
+}
