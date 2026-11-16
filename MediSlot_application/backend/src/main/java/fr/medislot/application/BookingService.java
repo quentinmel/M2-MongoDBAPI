@@ -9,6 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.server.ResponseStatusException;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.context.Scope;
 @Service
 public class BookingService {
  private final UserRepository users; private final SlotRepository slots; private final AppointmentRepository appointments;
@@ -22,6 +26,9 @@ public class BookingService {
  @Transactional public Appointment book(String email,Long slotId){return book(email,slotId,null);}
  @Transactional public Appointment book(String email,Long slotId,String visitorId){return book(email,slotId,visitorId,null);}
  @Transactional public Appointment book(String email,Long slotId,String visitorId,String idemKey){
+  Span span=GlobalOpenTelemetry.getTracer("fr.medislot.application.BookingService").spanBuilder("medislot.reservation").startSpan();
+  span.setAttribute("medislot.slot.id",slotId);
+  try(Scope scope=span.makeCurrent()){
   Long patient=patient(email);
   if(idemKey!=null){
    if(!idemKey.matches("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Clé d’idempotence invalide.");
@@ -35,8 +42,10 @@ public class BookingService {
   }
   Slot s=lock(slotId);check(s);
   Appointment a=new Appointment();a.patientId=patient;a.slotId=s.id;a.status="CONFIRMED";a.createdAt=Instant.now();appointments.saveAndFlush(a);
+  span.setAttribute("medislot.appointment.id",a.id);
   if(idemKey!=null)jdbc.update("UPDATE booking_idempotency SET appointment_id=? WHERE idem_key=?::uuid",a.id,idemKey);
   record(a,"CREATED","Votre rendez-vous est confirmé.");ab.recordConversion(visitorId);events.publishEvent(new BookingChanged(patient,List.of(s.professionalId)));return a;
+  }catch(RuntimeException e){span.setStatus(StatusCode.ERROR);throw e;}finally{span.end();}
  }
  @Transactional public Appointment cancel(String email,Long id){
   Appointment a=owned(id,patient(email));Slot s=lock(a.slotId);

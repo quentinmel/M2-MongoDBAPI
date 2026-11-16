@@ -17,6 +17,8 @@ Second patient : `autre@medislot.test`, même mot de passe. On peut aussi créer
 
 Le navigateur passe par Nginx. `/api` rejoint Spring. PostgreSQL utilise un volume persistant. Les disponibilités fictives couvrent les dix jours suivant la première initialisation. Pour des sessions de formation ultérieures, renouveler les créneaux en base ou utiliser un nouveau nom de projet Compose avec `docker compose -p medislot-nouvelle-session up -d --build` après avoir arrêté l’ancien projet. Ne pas effacer un volume contenant un travail à conserver.
 
+Compose démarre également Jaeger (`http://localhost:16686`), le collecteur OpenTelemetry (OTLP) et une passerelle SMS fictive. Le navigateur exporte `medislot-web` via `/otlp/v1/traces` et propage `traceparent` aux appels `/api`; l’agent Java exporte `medislot-api` et ses spans JDBC vers le même collecteur. Pour vérifier une réservation de bout en bout, exécuter `cd frontend && npx playwright test e2e/trace.spec.ts`, puis `bash tests/verifier_traces.sh` depuis la racine MediSlot. Les résultats d’analyse et sorties de validation sont consignés dans [`TRACES.md`](./TRACES.md).
+
 L’expérience A/B du libellé de réservation est activée par défaut. Les affectations et indicateurs sont conservés dans PostgreSQL ; consulter `http://localhost:8092/api/ab/metrics` (ou `http://localhost:18080/api/ab/metrics`). Pour désactiver l’expérience sans supprimer l’historique, lancer `AB_ENABLED=false docker compose up -d --build backend`.
 
 ## Parcours disponibles
