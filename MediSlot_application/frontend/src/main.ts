@@ -1,1 +1,1 @@
-import {createApp} from 'vue';import {createPinia} from 'pinia';import App from './App.vue';import './style.css';import './ab.css';import {demarrerTraces} from './tracing';demarrerTraces();createApp(App).use(createPinia()).mount('#app');
+import {createApp} from 'vue';import {createPinia} from 'pinia';import App from './App.vue';import './style.css';import './ab.css';import './convocation.css';import {demarrerTraces} from './tracing';demarrerTraces();createApp(App).use(createPinia()).mount('#app');

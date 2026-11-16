@@ -27,6 +27,7 @@ L’expérience A/B du libellé de réservation est activée par défaut. Les af
 - Fiches de praticiens et créneaux dans le fuseau Europe/Paris.
 - Inscription, connexion et déconnexion par session avec protection CSRF.
 - Réservation, déplacement atomique et annulation.
+- Affichage ou téléchargement d’une convocation PDF privée pour chaque rendez-vous confirmé.
 - Mise en attente locale d’une réservation hors ligne dans IndexedDB ; l’envoi reprend au retour du réseau avec une clé d’idempotence. Les déplacements nécessitent une connexion.
 - Contrôle du propriétaire de chaque rendez-vous.
 - Historique des opérations et notifications persistantes.
@@ -35,7 +36,7 @@ L’expérience A/B du libellé de réservation est activée par défaut. Les af
 
 La gestion administrative des praticiens et de leurs horaires n’est pas une interface fournie : les données fictives sont initialisées dans `DemoData`. L’atelier d’extension propose ce besoin après le socle patient.
 
-Le parcours hors ligne et ses observations de validation sont décrits dans [`RECETTE.md`](./RECETTE.md). Le cache IndexedDB ne contient que les informations nécessaires au créneau et au compte ; ni mot de passe ni jeton de session n’y sont enregistrés.
+Le parcours hors ligne et ses observations de validation sont décrits dans [`RECETTE.md`](./RECETTE.md). Le contrat et les preuves de génération des convocations sont dans [`CONVOCATION.md`](./CONVOCATION.md). Le cache IndexedDB ne contient que les informations nécessaires au créneau et au compte ; ni mot de passe ni jeton de session n’y sont enregistrés.
 
 ## Développer sans reconstruire les images
 

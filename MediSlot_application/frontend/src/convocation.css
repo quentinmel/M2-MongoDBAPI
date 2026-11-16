@@ -1,0 +1,3 @@
+.convocation-actions{display:flex;flex-direction:column;align-items:stretch;gap:6px}
+.convocation-download{margin:0;padding:9px 12px;font-size:12px;white-space:nowrap}
+.convocation-error{margin:2px 0;color:#922c13;font-size:12px;line-height:1.45}

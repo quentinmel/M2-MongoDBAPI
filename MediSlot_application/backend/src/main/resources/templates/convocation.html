@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title>Convocation au rendez-vous</title>
+  <style>
+    @page { size: A4; margin: 22mm 20mm; }
+    body { font-family: "DejaVu Sans"; color: #17334a; font-size: 11pt; line-height: 1.55; }
+    header { border-bottom: 3px solid #0873b9; margin-bottom: 28px; padding-bottom: 12px; }
+    .brand { color: #0873b9; font-size: 19pt; font-weight: bold; }
+    h1 { font-size: 20pt; margin: 0 0 8px; }
+    h2 { color: #0873b9; font-size: 13pt; margin: 22px 0 5px; }
+    .appointment { background: #eaf4fa; border-left: 4px solid #0873b9; margin: 20px 0; padding: 14px 18px; }
+    .date { font-size: 14pt; font-weight: bold; }
+    footer { border-top: 1px solid #dce6ed; color: #526b7c; font-size: 9pt; margin-top: 36px; padding-top: 10px; }
+  </style>
+</head>
+<body>
+  <header><span class="brand">MediSlot</span></header>
+  <main>
+    <h1>Convocation à votre rendez-vous</h1>
+    <p>Bonjour <strong th:text="${document.patientName}">Camille Dupont</strong>,</p>
+    <p>Votre rendez-vous est confirmé. Veuillez vous présenter à la date et à l’adresse indiquées ci-dessous.</p>
+    <section class="appointment" aria-label="Date du rendez-vous">
+      <div class="date" th:text="${document.appointmentDateTime}">jeudi 15 janvier 2026 à 11:00</div>
+      <div>Référence du rendez-vous : <span th:text="${document.appointmentId}">42</span></div>
+    </section>
+    <section aria-label="Professionnel et lieu">
+      <h2>Professionnel de santé</h2>
+      <p><strong th:text="${document.professionalName}">Dr Sarah Martin</strong></p>
+      <p th:text="${document.specialty}">Médecine générale</p>
+      <h2>Lieu du rendez-vous</h2>
+      <p th:text="${document.address}">18 avenue de la République</p>
+      <p th:text="${document.city}">Paris</p>
+    </section>
+  </main>
+  <footer>Document généré par MediSlot. Conservez cette convocation pour votre rendez-vous.</footer>
+</body>
+</html>
